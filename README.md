@@ -1,4 +1,6 @@
-# smartcity-ifttt
+# IFTTT Shim API
 
-https://partners.ifttt.com/docs
-https://partners.ifttt.com/docs/api_reference
+A Slim 3 PHP middleware API to translates calls between IFTTT and various Louisville Metro Government APIs.
+
+git clone
+composer install (PHP5.6+)
