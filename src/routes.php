@@ -47,6 +47,7 @@ $app->post('/ifttt/v1/test/setup', function ($request, $response, $args) {
 });
 
 $app->post('/ifttt/v1/triggers/air_quality', function ($request, $response, $args) {
+    $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' route - success");
     $error_msgs = array();
 
     $request_data = json_decode($request->getBody()->getContents(), true);
@@ -68,12 +69,13 @@ $app->post('/ifttt/v1/triggers/air_quality', function ($request, $response, $arg
 
         if( ! empty( $res ) )
         {
+            $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' AAWS.louisvilleky.gov pull - success");
             $reqdata = json_decode($res, true);
 
             if( ! empty( $reqdata ) ) {
 
-                //$air_quality = $reqdata['AirQuality']['Index'];
-                $air_quality = rand(1, 100);
+                $air_quality = $reqdata['AirQuality']['Index'];
+                //$air_quality = rand(1, 500); //run for demo
                 $aql = 'N/A';
 
                 switch($air_quality)
@@ -98,12 +100,25 @@ $app->post('/ifttt/v1/triggers/air_quality', function ($request, $response, $arg
                         break;
                 }
 
-                //insert NEW RECORD!
-                $this->db->table('air_quality_record')->insertGetId(array(
-                    'index_value' => $air_quality,
-                    'label' => $aql,
-                    'date_created' => date('Y-m-d H:i:s')
-                ));
+                //first check to see if we need to insert a new entry
+                $aqr = $this->db->table('air_quality_record')
+                    ->orderBy('date_created', 'desc')
+                    ->limit(1)
+                    ->get();
+
+
+                if( $aqr[0]->index_value != $air_quality ) {
+                    //insert NEW RECORD!
+                    $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' Inserted new Air quality index - success");
+                    $this->db->table('air_quality_record')->insertGetId(array(
+                        'index_value' => $air_quality,
+                        'label' => $aql,
+                        'date_created' => date('Y-m-d H:i:s')
+                    ));
+                }else{
+                    $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' Air Quality Index not changed - skipping DB insert");
+                }
+
 
 
                 //get air qulity's
@@ -153,18 +168,21 @@ $app->post('/ifttt/v1/triggers/air_quality', function ($request, $response, $arg
                         )
                     );
                 }
-
+                $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' API request - success");
                 return $response->withStatus(200)
                     ->withHeader('Content-Type', 'application/json; charset=utf-8')
                     ->write(json_encode($newarr));
             } else {
+                $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' Properties need to be set - fail");
                 $error_msgs[] = array('status'=> 'SKIP', 'message' => 'Properties need to be set');
             }
         } else {
+            $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' Response is empty - fail");
             $error_msgs[] = array('status'=> 'SKIP', 'message' => 'Response is empty');
         }
     }
     $error = array('errors' => $error_msgs);
+    $this->logger->info("air_quality '/ifttt/v1/triggers/air_quality' errors - fail");
     return $response->withStatus(400)
         ->withHeader('Content-Type', 'application/json; charset=utf-8')
         ->write(json_encode($error));

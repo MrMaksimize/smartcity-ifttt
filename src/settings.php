@@ -3,8 +3,8 @@ return [
     'settings' => [
         'displayErrorDetails' => true, // set to false in production
         'addContentLengthHeader' => false, // Allow the web server to send the content-length header
-        'env' => 'live', //live,  test
-        'system_email' => '', //system email
+        'env' => 'live',
+        'system_email' => 'no-reply@smartlouisville.com',
         // Renderer settings
         'renderer' => [
             'template_path' => __DIR__ . '/../templates/',
@@ -12,7 +12,7 @@ return [
 
         // Monolog settings
         'logger' => [
-            'name' => '', //domian
+            'name' => 'api.smartlouisville.com',
             'path' => __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
